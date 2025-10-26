@@ -40,5 +40,5 @@ func main() {
 
 	cch = initCache()
 
-	mac.Run("127.0.0.1", Port)
+	mac.Run("0.0.0.0", Port)
 }

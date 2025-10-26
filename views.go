@@ -292,27 +292,27 @@ func telegramMinerView(ctx *macaron.Context) {
 
 func withdrawView(ctx *macaron.Context) {
 	mr := &MineResponse{}
-	if strings.Contains(ctx.Req.RemoteAddr, "127.0.0.1") {
-		u := &Miner{}
-		tid := ctx.Params("tid")
-		tidi, err := strconv.Atoi(tid)
-		if err != nil {
-			log.Println(err)
-			logTelegram(err.Error())
-		}
-
-		u = getMinerTel(int64(tidi))
-
-		sendAssetTelegram(u.MinedTelegram-Fee, "", u.Address)
-
-		u.MinedTelegram = 0
-		db.Save(u)
-
-		mon.loadMiners()
-	} else {
-		mr.Error = 1
-		mr.Success = false
+	// if strings.Contains(ctx.Req.RemoteAddr, "127.0.0.1") {
+	u := &Miner{}
+	tid := ctx.Params("tid")
+	tidi, err := strconv.Atoi(tid)
+	if err != nil {
+		log.Println(err)
+		logTelegram(err.Error())
 	}
+
+	u = getMinerTel(int64(tidi))
+
+	sendAssetTelegram(u.MinedTelegram-Fee, "", u.Address)
+
+	u.MinedTelegram = 0
+	db.Save(u)
+
+	mon.loadMiners()
+	// } else {
+	// 	mr.Error = 1
+	// 	mr.Success = false
+	// }
 
 	ctx.JSON(200, mr)
 }
@@ -328,38 +328,38 @@ func saveTelegram(ctx *macaron.Context) {
 		mr.Error = 1
 	}
 
-	if strings.Contains(ctx.Req.RemoteAddr, "127.0.0.1") {
-		m := &Miner{}
-		db.First(m, &Miner{TelegramId: int64(tid)})
+	// if strings.Contains(ctx.Req.RemoteAddr, "127.0.0.1") {
+	m := &Miner{}
+	db.First(m, &Miner{TelegramId: int64(tid)})
 
-		if m.ID == 0 {
-			db.FirstOrCreate(m, &Miner{TelegramId: int64(tid), Address: tids})
-		}
-
-		if strings.HasPrefix(ap, "3A") {
-			m.Address = ap
-		} else {
-			refid, err := strconv.Atoi(ap)
-			if err == nil && m.ReferralID == 0 && m.ID != uint(refid) {
-				// result = db.FirstOrCreate(m, &Miner{TelegramId: int64(tid), Address: tids, ReferralID: uint(refid)})
-				m.ReferralID = uint(refid)
-			}
-		}
-
-		err := db.Save(m).Error
-		if err != nil {
-			// time.Sleep(time.Millisecond * 500)
-			// err = db.Save(m).Error
-			log.Println(err)
-			// logTelegram(err.Error())
-			mr.Success = false
-			mr.Error = 3
-		}
-		// mon.loadMiners()
-	} else {
-		mr.Success = false
-		mr.Error = 4
+	if m.ID == 0 {
+		db.FirstOrCreate(m, &Miner{TelegramId: int64(tid), Address: tids})
 	}
+
+	if strings.HasPrefix(ap, "3A") {
+		m.Address = ap
+	} else {
+		refid, err := strconv.Atoi(ap)
+		if err == nil && m.ReferralID == 0 && m.ID != uint(refid) {
+			// result = db.FirstOrCreate(m, &Miner{TelegramId: int64(tid), Address: tids, ReferralID: uint(refid)})
+			m.ReferralID = uint(refid)
+		}
+	}
+
+	err = db.Save(m).Error
+	if err != nil {
+		// time.Sleep(time.Millisecond * 500)
+		// err = db.Save(m).Error
+		log.Println(err)
+		// logTelegram(err.Error())
+		mr.Success = false
+		mr.Error = 3
+	}
+	// mon.loadMiners()
+	// } else {
+	// 	mr.Success = false
+	// 	mr.Error = 4
+	// }
 
 	ctx.JSON(200, mr)
 }
@@ -405,79 +405,81 @@ func telegramMineView(ctx *macaron.Context) {
 	t := ctx.Params("tid")
 	c := ctx.Params("code")
 
-	if strings.Contains(ip, "127.0.0.1") {
-		code := strings.TrimSpace(c)
-		code = regexp.MustCompile(`[^0-9]+`).ReplaceAllString(code, "")
+	log.Println(ip)
 
-		log.Println(code)
+	// if strings.Contains(ip, "127.0.0.1") {
+	code := strings.TrimSpace(c)
+	code = regexp.MustCompile(`[^0-9]+`).ReplaceAllString(code, "")
 
-		codeInt, err := strconv.Atoi(code)
+	log.Println(code)
+
+	codeInt, err := strconv.Atoi(code)
+	if err != nil {
+		log.Println(err)
+		logTelegram(err.Error())
+		mr.Success = false
+		mr.Error = 2
+	} else {
+		tid, err := strconv.Atoi(t)
+		log.Println(tid)
 		if err != nil {
 			log.Println(err)
 			logTelegram(err.Error())
 			mr.Success = false
 			mr.Error = 2
 		} else {
-			tid, err := strconv.Atoi(t)
-			log.Println(tid)
-			if err != nil {
-				log.Println(err)
-				logTelegram(err.Error())
-				mr.Success = false
-				mr.Error = 2
-			} else {
-				if int(codeInt) == getMiningCode() {
-					m := getMinerTel(int64(tid))
-					if int64(h)-m.MiningHeight > 1409 {
-						if m.MiningHeight > 0 {
-							sendMined(m.Address, int64(h)-int64(m.MiningHeight))
-							sendMinedTelegram(m.Address, int64(h)-int64(m.MiningHeight))
-							m.Cycles++
-							m.MiningTime = time.Now()
-							m.MiningHeight = int64(h)
-							m.BatteryNotification = true
-							err := db.Save(m).Error
-							if err != nil {
-								log.Println(err)
-								logTelegram(err.Error())
-							}
-							m.saveInBlockchain()
-						} else {
-							if strings.HasPrefix(m.Address, "3A") {
-								sendAsset(Fee, "", m.Address)
-							}
-							m.MinedTelegram = Fee
-							m.MiningTime = time.Now()
-							m.Cycles = 1
-							m.MiningHeight = int64(h)
-							m.UpdatedApp = true
-							m.BatteryNotification = true
-							if m.Address == "" {
-								m.Address = strconv.Itoa(int(m.TelegramId))
-							}
-							err := db.Save(m).Error
-							if err != nil {
-								log.Println(err)
-								logTelegram(err.Error())
-							}
-							m.saveInBlockchain()
-							// sendNotificationFirst(m)
+			if int(codeInt) == getMiningCode() {
+				m := getMinerTel(int64(tid))
+				if int64(h)-m.MiningHeight > 1409 {
+					if m.MiningHeight > 0 {
+						sendMined(m.Address, int64(h)-int64(m.MiningHeight))
+						sendMinedTelegram(m.Address, int64(h)-int64(m.MiningHeight))
+						m.Cycles++
+						m.MiningTime = time.Now()
+						m.MiningHeight = int64(h)
+						m.BatteryNotification = true
+						err := db.Save(m).Error
+						if err != nil {
+							log.Println(err)
+							logTelegram(err.Error())
 						}
-						// mon.loadMiners()
+						m.saveInBlockchain()
 					} else {
-						mr.Success = false
-						mr.Error = 4
+						if strings.HasPrefix(m.Address, "3A") {
+							sendAsset(Fee, "", m.Address)
+						}
+						m.MinedTelegram = Fee
+						m.MiningTime = time.Now()
+						m.Cycles = 1
+						m.MiningHeight = int64(h)
+						m.UpdatedApp = true
+						m.BatteryNotification = true
+						if m.Address == "" {
+							m.Address = strconv.Itoa(int(m.TelegramId))
+						}
+						err := db.Save(m).Error
+						if err != nil {
+							log.Println(err)
+							logTelegram(err.Error())
+						}
+						m.saveInBlockchain()
+						// sendNotificationFirst(m)
 					}
+					// mon.loadMiners()
 				} else {
 					mr.Success = false
-					mr.Error = 3
+					mr.Error = 4
 				}
+			} else {
+				mr.Success = false
+				mr.Error = 3
 			}
 		}
-	} else {
-		mr.Success = false
-		mr.Error = 1
 	}
+	// } else {
+	// 	mr.Success = false
+	// 	mr.Error = 1
+	// }
 
 	ctx.JSON(200, mr)
 }

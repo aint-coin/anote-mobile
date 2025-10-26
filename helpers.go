@@ -532,7 +532,7 @@ func prettyPrint(i interface{}) string {
 }
 
 func sendTelegramNotification(addr string, height int64, savedHeight int64) bool {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/notification/%s/%d/%d", addr, height, savedHeight))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/notification/%s/%d/%d", addr, height, savedHeight))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -554,7 +554,7 @@ func sendTelegramNotification(addr string, height int64, savedHeight int64) bool
 }
 
 func telegramNotification(tid int64, msg string) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/notification-tg/%d/%s", tid, msg))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/notification-tg/%d/%s", tid, msg))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -582,7 +582,7 @@ func getCallerInfo() (info string) {
 func logTelegram(message string) {
 	message = "anote-mobile:" + getCallerInfo() + url.PathEscape(url.QueryEscape(message))
 
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/log/%s", message))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/log/%s", message))
 	if err != nil {
 		log.Println(err)
 	}
@@ -772,7 +772,7 @@ func hasAintHealth(m *Miner, second bool) bool {
 }
 
 func sendInvite(m *Miner) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/invite/%s", strconv.Itoa(int(m.TelegramId))))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/invite/%s", strconv.Itoa(int(m.TelegramId))))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -781,7 +781,7 @@ func sendInvite(m *Miner) {
 }
 
 func sendNotificationEnd(m *Miner) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/notification-end/%s", strconv.Itoa(int(m.TelegramId))))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/notification-end/%s", strconv.Itoa(int(m.TelegramId))))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -790,7 +790,7 @@ func sendNotificationEnd(m *Miner) {
 }
 
 func sendNotificationWeekly(m *Miner) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/notification-weekly/%s", strconv.Itoa(int(m.TelegramId))))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/notification-weekly/%s", strconv.Itoa(int(m.TelegramId))))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -799,7 +799,7 @@ func sendNotificationWeekly(m *Miner) {
 }
 
 func sendNotificationBattery(m *Miner) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/notification-bo/%s", strconv.Itoa(int(m.TelegramId))))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/notification-bo/%s", strconv.Itoa(int(m.TelegramId))))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -808,7 +808,7 @@ func sendNotificationBattery(m *Miner) {
 }
 
 func sendNotificationFirst(m *Miner) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/notification-first/%s", strconv.Itoa(int(m.TelegramId))))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/notification-first/%s", strconv.Itoa(int(m.TelegramId))))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -880,7 +880,7 @@ type AlphaSentResponse struct {
 
 func getAlphaSent(addr string) bool {
 	alr := &AlphaSentResponse{Sent: true}
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/alpha-sent/%s", addr))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/alpha-sent/%s", addr))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())
@@ -901,7 +901,7 @@ func getAlphaSent(addr string) bool {
 
 func isFollower(tid int64) bool {
 	ifr := &IsFollowerResponse{IsFollower: false}
-	resp, err := http.Get(fmt.Sprintf("http://localhost:5006/is-follower/%d", tid))
+	resp, err := http.Get(fmt.Sprintf("http://anote-robot:5006/is-follower/%d", tid))
 	if err != nil {
 		log.Println(err)
 		logTelegram(err.Error())

@@ -24,7 +24,13 @@ func (c *Config) load(configFile string) {
 
 	if err != nil {
 		log.Println(err)
-		logTelegram(err.Error())
+		// logTelegram(err.Error())
+
+		file, err = os.Open("/persistent/anote-mobile.config.json")
+		if err != nil {
+			log.Println(err.Error())
+			// logTelegram(err.Error())
+		}
 	}
 
 	decoder := json.NewDecoder(file)
@@ -33,7 +39,7 @@ func (c *Config) load(configFile string) {
 
 	if err != nil {
 		log.Println(err)
-		logTelegram(err.Error())
+		// logTelegram(err.Error())
 	}
 }
 

@@ -379,7 +379,7 @@ func sendAssetTelegram(amount uint64, assetId string, recipient string) error {
 }
 
 func sendMined(address string, heightDif int64) {
-	var amount int64
+	// var amount int64
 	var amountBasic int64
 	var referralIndex float64
 	miner := getMiner(address)
@@ -420,7 +420,15 @@ func sendMined(address string, heightDif int64) {
 			logTelegram(err.Error())
 		}
 
-		amount = (int64(total.Balance) / (int64(stats.ActiveUnits) + int64(stats.ActiveReferred/4))) - Fee
+		log.Println(prettyPrint(stats))
+
+		amount := int64(0)
+
+		if stats.ActiveUnits == 0 || stats.ActiveReferred == 0 {
+			amount = int64(total.Balance) - Fee
+		} else {
+			amount = (int64(total.Balance) / (int64(stats.ActiveUnits) + int64(stats.ActiveReferred/4))) - Fee
+		}
 
 		if amount > 0 {
 			amountBasic = amount
@@ -494,7 +502,11 @@ func sendMinedTelegram(address string, heightDif int64) {
 	}
 
 	if miner.ID != 0 {
-		amount = (total.Balance / (uint64(stats.ActiveUnits) + uint64(stats.ActiveReferred/4))) - Fee
+		if stats.ActiveUnits == 0 || stats.ActiveReferred == 0 {
+			amount = uint64(total.Balance) - Fee
+		} else {
+			amount = (total.Balance / (uint64(stats.ActiveUnits) + uint64(stats.ActiveReferred/4))) - Fee
+		}
 		amountBasic = amount
 
 		rc := getRefCount(miner)

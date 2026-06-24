@@ -151,6 +151,7 @@ func (pc *PriceClient) start() {
 func initPriceClient() *PriceClient {
 	pc := &PriceClient{Loaded: false}
 	// go pc.start()
+	pc.loadPrice()
 	return pc
 }
 
